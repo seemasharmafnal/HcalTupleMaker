@@ -9,6 +9,10 @@ hcalTupleHFDigis = cms.EDProducer("HcalTupleMaker_HFDigis",
   Suffix  = cms.untracked.string ( ""),
   DoChargeReco = cms.untracked.bool ( True ) ,
   DoEnergyReco = cms.untracked.bool ( True ) ,
+  SaveChargeInfo  = cms.untracked.bool ( True ) ,
+  SaveChannelInfo = cms.untracked.bool ( False ) ,
+  SaveDetIdInfo   = cms.untracked.bool ( True ) ,
+  SaveRecHitInfo  = cms.untracked.bool ( True ) ,
   TotalFCthreshold = cms.untracked.double ( -9999 )
 )
 
@@ -19,6 +23,10 @@ hcalTupleHFUTCADigis = cms.EDProducer("HcalTupleMaker_HFDigis",
   Suffix  = cms.untracked.string ( ""),
   DoChargeReco = cms.untracked.bool ( True ) ,
   DoEnergyReco = cms.untracked.bool ( True ) ,
+  SaveChargeInfo  = cms.untracked.bool ( True ) ,
+  SaveChannelInfo = cms.untracked.bool ( False ) ,
+  SaveDetIdInfo   = cms.untracked.bool ( True ) ,
+  SaveRecHitInfo  = cms.untracked.bool ( True ) ,
   TotalFCthreshold = cms.untracked.double ( -9999 )
 )
 
@@ -29,5 +37,9 @@ hcalTupleHFL1JetsDigis = cms.EDProducer("HcalTupleMaker_HFDigis",
   Suffix  = cms.untracked.string ( ""),
   DoChargeReco = cms.untracked.bool ( True ) ,
   DoEnergyReco = cms.untracked.bool ( True ) ,
+  SaveChargeInfo  = cms.untracked.bool ( True ) ,
+  SaveChannelInfo = cms.untracked.bool ( False ) ,
+  SaveDetIdInfo   = cms.untracked.bool ( True ) ,
+  SaveRecHitInfo  = cms.untracked.bool ( True ) ,
   TotalFCthreshold = cms.untracked.double ( -9999 )
 )
