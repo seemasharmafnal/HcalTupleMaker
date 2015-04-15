@@ -21,10 +21,14 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
   const std::string     m_suffix;
   const bool            m_doChargeReco;
   const bool            m_doEnergyReco;
+  const bool            m_saveChargeInfo;
+  const bool            m_saveChannelInfo;
+  const bool            m_saveDetIdInfo;
+  const bool            m_saveRecHitInfo;
   const double          m_totalFCthreshold;
   
   HcalTupleMaker_HcalDigiAlgorithm algo;
-  
+
   void produce( edm::Event & iEvent, const edm::EventSetup & iSetup ) { 
     
     //-----------------------------------------------------
@@ -38,6 +42,8 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
     //-----------------------------------------------------
     
     bool run_algo = true;
+
+    //std::cout << "m_hcalDigisTag " << m_hcalDigisTag << std::endl;
     
     edm::Handle<DigiCollection>  hcalDigis;
     bool gotHCALDigis = iEvent.getByLabel(m_hcalDigisTag, hcalDigis);
@@ -45,7 +51,8 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
       std::cout << "Could not find HCAL Digis with tag " << m_hcalDigisTag << std::endl;
       run_algo = false;
     }
-    
+    //std::cout << "hcalDigis.size() " << hcalDigis->size() << std::endl;
+
     edm::Handle<RecHitCollection>  hcalRecos;
     if ( m_doEnergyReco ){
       bool gotHCALRecos = iEvent.getByLabel(m_hcalRecHitsTag, hcalRecos);
@@ -54,7 +61,7 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
     	run_algo = false;
       }
     }
-    
+   
     //-----------------------------------------------------
     // edm::ESHandles
     //-----------------------------------------------------
@@ -73,7 +80,7 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
     //-----------------------------------------------------
     
     if ( run_algo ) algo.run<DigiCollection, RecHitCollection, DetIdClass, DetIdClassWrapper > ( *conditions, *hcalDigis, *hcalRecos, *geometry, inputCoder.product() );
-    
+
     //-----------------------------------------------------
     // Put things into the event
     //-----------------------------------------------------
@@ -91,39 +98,56 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
   m_suffix            (iConfig.getUntrackedParameter<std::string>  ("Suffix")),
   m_doChargeReco      (iConfig.getUntrackedParameter<bool>         ("DoChargeReco")),
   m_doEnergyReco      (iConfig.getUntrackedParameter<bool>         ("DoEnergyReco")),
+  m_saveChargeInfo    (iConfig.getUntrackedParameter<bool>         ("SaveChargeInfo")),
+  m_saveChannelInfo   (iConfig.getUntrackedParameter<bool>         ("SaveChannelInfo")),
+  m_saveDetIdInfo     (iConfig.getUntrackedParameter<bool>         ("SaveDetIdInfo")),
+  m_saveRecHitInfo    (iConfig.getUntrackedParameter<bool>         ("SaveRecHitInfo")),
   m_totalFCthreshold  (iConfig.getUntrackedParameter<double>       ("TotalFCthreshold")){
-    
-    produces<std::vector<int>   >               ( m_prefix + "IEta"            + m_suffix );
-    produces<std::vector<int>   >               ( m_prefix + "IPhi"            + m_suffix );
-    produces<std::vector<float> >               ( m_prefix + "Eta"             + m_suffix );
-    produces<std::vector<float> >               ( m_prefix + "Phi"             + m_suffix );
-    produces<std::vector<int>   >               ( m_prefix + "Subdet"          + m_suffix );
-    produces<std::vector<int>   >               ( m_prefix + "Depth"           + m_suffix );
-    produces<std::vector<int>   >               ( m_prefix + "Presamples"      + m_suffix );
-    produces<std::vector<int>   >               ( m_prefix + "Size"            + m_suffix );
-    produces<std::vector<int>   >               ( m_prefix + "FiberIdleOffset" + m_suffix );
-    produces<std::vector<int>   >               ( m_prefix + "ElectronicsID"   + m_suffix );
-    produces<std::vector<int>   >               ( m_prefix + "RawID"           + m_suffix );
-    
-    produces<std::vector<std::vector<int>   > > ( m_prefix + "DV"              + m_suffix );	     	
-    produces<std::vector<std::vector<int>   > > ( m_prefix + "ER"              + m_suffix );	     	
-    produces<std::vector<std::vector<int>   > > ( m_prefix + "Raw"             + m_suffix );	     	
-    produces<std::vector<std::vector<int>   > > ( m_prefix + "ADC"             + m_suffix );	     	
-    produces<std::vector<std::vector<float> > > ( m_prefix + "NomFC"           + m_suffix );    	
-    produces<std::vector<std::vector<int>   > > ( m_prefix + "Fiber"           + m_suffix );    	
-    produces<std::vector<std::vector<int>   > > ( m_prefix + "FiberChan"       + m_suffix );	
-    produces<std::vector<std::vector<int>   > > ( m_prefix + "CapID"           + m_suffix );    	
-    produces<std::vector<std::vector<int>   > > ( m_prefix + "LADC"            + m_suffix );	     	
-    
-    produces<std::vector<std::vector<float> > > ( m_prefix + "AllFC"           + m_suffix );    	
-    produces<std::vector<std::vector<float> > > ( m_prefix + "PedFC"           + m_suffix );    	
-    produces<std::vector<std::vector<float> > > ( m_prefix + "Gain"            + m_suffix );    	
-    produces<std::vector<std::vector<float> > > ( m_prefix + "RCGain"          + m_suffix );    	
-    produces<std::vector<std::vector<float> > > ( m_prefix + "FC"              + m_suffix );		
-    produces<std::vector<std::vector<float> > > ( m_prefix + "Energy"          + m_suffix );    	
-    
-    produces<std::vector<float> >               ( m_prefix + "RecEnergy"       + m_suffix );    	
-    produces<std::vector<float> >               ( m_prefix + "RecTime"         + m_suffix );      
+
+    if(m_saveDetIdInfo) {    
+      produces<std::vector<int>   >               ( m_prefix + "IEta"            + m_suffix );
+      produces<std::vector<int>   >               ( m_prefix + "IPhi"            + m_suffix );
+      produces<std::vector<float> >               ( m_prefix + "Eta"             + m_suffix );
+      produces<std::vector<float> >               ( m_prefix + "Phi"             + m_suffix );
+      produces<std::vector<int>   >               ( m_prefix + "Depth"           + m_suffix );
+    }
+
+    if(m_saveChannelInfo) {
+      produces<std::vector<int>   >               ( m_prefix + "Subdet"          + m_suffix );
+      produces<std::vector<int>   >               ( m_prefix + "Presamples"      + m_suffix );
+      produces<std::vector<int>   >               ( m_prefix + "Size"            + m_suffix );
+      
+      produces<std::vector<int>   >               ( m_prefix + "FiberIdleOffset" + m_suffix );
+      produces<std::vector<int>   >               ( m_prefix + "ElectronicsID"   + m_suffix );
+      produces<std::vector<int>   >               ( m_prefix + "RawID"           + m_suffix );
+      
+      produces<std::vector<std::vector<int>   > > ( m_prefix + "DV"              + m_suffix );	     	
+      produces<std::vector<std::vector<int>   > > ( m_prefix + "ER"              + m_suffix );	     	
+      produces<std::vector<std::vector<int>   > > ( m_prefix + "Raw"             + m_suffix );	     	
+      produces<std::vector<std::vector<int>   > > ( m_prefix + "ADC"             + m_suffix );	     	
+      produces<std::vector<std::vector<float> > > ( m_prefix + "NomFC"           + m_suffix );    	
+      produces<std::vector<std::vector<int>   > > ( m_prefix + "Fiber"           + m_suffix );    	
+      produces<std::vector<std::vector<int>   > > ( m_prefix + "FiberChan"       + m_suffix );	
+      produces<std::vector<std::vector<int>   > > ( m_prefix + "CapID"           + m_suffix );    	
+      produces<std::vector<std::vector<int>   > > ( m_prefix + "LADC"            + m_suffix );	     	
+    }    
+
+    if(m_saveChargeInfo ){
+      produces<std::vector<std::vector<float> > > ( m_prefix + "FC"              + m_suffix );		
+      produces<std::vector<std::vector<float> > > ( m_prefix + "PedFC"           + m_suffix );    	
+      produces<std::vector<std::vector<float> > > ( m_prefix + "RCGain"          + m_suffix );    	
+    }
+    if(m_saveChannelInfo) {
+      produces<std::vector<std::vector<float> > > ( m_prefix + "AllFC"           + m_suffix );    	
+      produces<std::vector<std::vector<float> > > ( m_prefix + "Gain"            + m_suffix );    	
+      produces<std::vector<std::vector<float> > > ( m_prefix + "Energy"          + m_suffix );    	
+    }    
+    if( m_saveRecHitInfo ){
+      produces<std::vector<float> >               ( m_prefix + "RecEnergy"       + m_suffix );    	
+      produces<std::vector<float> >               ( m_prefix + "RecTime"         + m_suffix );      
+      produces<std::vector<int> >                 ( m_prefix + "RecRBXId"        + m_suffix );      
+      produces<std::vector<int> >                 ( m_prefix + "RecHPDId"        + m_suffix );      
+    }
 
     algo.setTotalFCthreshold ( m_totalFCthreshold );    
     algo.setDoChargeReco ( m_doChargeReco );
@@ -147,6 +171,8 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
     algo.rawId           = std::auto_ptr<std::vector<int> >                 ( new std::vector<int>   ());
     algo.rec_energy      = std::auto_ptr<std::vector<float> >               ( new std::vector<float> ());  
     algo.rec_time        = std::auto_ptr<std::vector<float> >               ( new std::vector<float> ());  
+    algo.rec_rbxid       = std::auto_ptr<std::vector<int> >                 ( new std::vector<int>   ());  
+    algo.rec_hpdid       = std::auto_ptr<std::vector<int> >                 ( new std::vector<int>   ());  
     
     algo.dv 	         = std::auto_ptr<std::vector<std::vector<int  > > > ( new std::vector<std::vector<int  > > ());  
     algo.er 	         = std::auto_ptr<std::vector<std::vector<int  > > > ( new std::vector<std::vector<int  > > ());  
@@ -164,43 +190,56 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
     algo.rcgain          = std::auto_ptr<std::vector<std::vector<float> > > ( new std::vector<std::vector<float> > ());  
     algo.FC 	         = std::auto_ptr<std::vector<std::vector<float> > > ( new std::vector<std::vector<float> > ());  
     algo.energy          = std::auto_ptr<std::vector<std::vector<float> > > ( new std::vector<std::vector<float> > ());  
-    
+
   }
 
  void dumpAlgo ( edm::Event & iEvent ){
 
-   iEvent.put ( algo.ieta            , m_prefix + "IEta"            + m_suffix );
-   iEvent.put ( algo.iphi            , m_prefix + "IPhi"            + m_suffix );
-   iEvent.put ( algo.eta             , m_prefix + "Eta"             + m_suffix );
-   iEvent.put ( algo.phi             , m_prefix + "Phi"             + m_suffix );
-   iEvent.put ( algo.depth           , m_prefix + "Depth"           + m_suffix );
-   iEvent.put ( algo.subdet          , m_prefix + "Subdet"          + m_suffix );
-   iEvent.put ( algo.presamples      , m_prefix + "Presamples"      + m_suffix );
-   iEvent.put ( algo.size            , m_prefix + "Size"            + m_suffix );
-   iEvent.put ( algo.fiberIdleOffset , m_prefix + "FiberIdleOffset" + m_suffix );
-   iEvent.put ( algo.electronicsId   , m_prefix + "ElectronicsID"   + m_suffix );
-   iEvent.put ( algo.rawId           , m_prefix + "RawID"           + m_suffix );
-   
-   iEvent.put ( algo.dv              , m_prefix + "DV"              + m_suffix );	     	
-   iEvent.put ( algo.er              , m_prefix + "ER"              + m_suffix );	     	
-   iEvent.put ( algo.raw  	     , m_prefix + "Raw"             + m_suffix );	     	
-   iEvent.put ( algo.adc   	     , m_prefix + "ADC"             + m_suffix );	     	
-   iEvent.put ( algo.nomFC           , m_prefix + "NomFC"           + m_suffix );    	
-   iEvent.put ( algo.fiber           , m_prefix + "Fiber"           + m_suffix );    	
-   iEvent.put ( algo.fiberChan       , m_prefix + "FiberChan"       + m_suffix );	
-   iEvent.put ( algo.capid           , m_prefix + "CapID"           + m_suffix );    	
-   iEvent.put ( algo.ladc   	     , m_prefix + "LADC"            + m_suffix );	     	
-   
-   iEvent.put ( algo.allFC           , m_prefix + "AllFC"           + m_suffix );    	
-   iEvent.put ( algo.pedFC           , m_prefix + "PedFC"           + m_suffix );    	
-   iEvent.put ( algo.gain            , m_prefix + "Gain"            + m_suffix );    	
-   iEvent.put ( algo.rcgain          , m_prefix + "RCGain"          + m_suffix );    	
-   iEvent.put ( algo.FC 	     , m_prefix + "FC"              + m_suffix );		
-   iEvent.put ( algo.energy          , m_prefix + "Energy"          + m_suffix );    	
-   
-   iEvent.put ( algo.rec_energy      , m_prefix + "RecEnergy"       + m_suffix );    	
-   iEvent.put ( algo.rec_time        , m_prefix + "RecTime"         + m_suffix );      
-   
+   if(m_saveDetIdInfo) {    
+     iEvent.put ( algo.ieta            , m_prefix + "IEta"            + m_suffix );
+     iEvent.put ( algo.iphi            , m_prefix + "IPhi"            + m_suffix );
+     iEvent.put ( algo.eta             , m_prefix + "Eta"             + m_suffix );
+     iEvent.put ( algo.phi             , m_prefix + "Phi"             + m_suffix );
+     iEvent.put ( algo.depth           , m_prefix + "Depth"           + m_suffix );
+   }
+
+   if(m_saveChannelInfo) {
+     iEvent.put ( algo.presamples      , m_prefix + "Presamples"      + m_suffix );
+     iEvent.put ( algo.size            , m_prefix + "Size"            + m_suffix );
+     iEvent.put ( algo.subdet          , m_prefix + "Subdet"          + m_suffix );
+     
+     iEvent.put ( algo.fiberIdleOffset , m_prefix + "FiberIdleOffset" + m_suffix );
+     iEvent.put ( algo.electronicsId   , m_prefix + "ElectronicsID"   + m_suffix );
+     iEvent.put ( algo.rawId           , m_prefix + "RawID"           + m_suffix );
+     
+     iEvent.put ( algo.dv              , m_prefix + "DV"              + m_suffix );	     	
+     iEvent.put ( algo.er              , m_prefix + "ER"              + m_suffix );	     	
+     iEvent.put ( algo.raw  	     , m_prefix + "Raw"             + m_suffix );	     	
+     iEvent.put ( algo.adc   	     , m_prefix + "ADC"             + m_suffix );	     	
+     iEvent.put ( algo.nomFC           , m_prefix + "NomFC"           + m_suffix );    	
+     iEvent.put ( algo.fiber           , m_prefix + "Fiber"           + m_suffix );    	
+     iEvent.put ( algo.fiberChan       , m_prefix + "FiberChan"       + m_suffix );	
+     iEvent.put ( algo.capid           , m_prefix + "CapID"           + m_suffix );    	
+     iEvent.put ( algo.ladc   	     , m_prefix + "LADC"            + m_suffix );	     	
+   }   
+
+   if(m_saveChargeInfo) {
+     iEvent.put ( algo.FC 	     , m_prefix + "FC"              + m_suffix );		
+     iEvent.put ( algo.pedFC           , m_prefix + "PedFC"           + m_suffix );    	
+     iEvent.put ( algo.rcgain          , m_prefix + "RCGain"          + m_suffix );    	
+   }
+   if(m_saveChannelInfo) {
+     iEvent.put ( algo.allFC           , m_prefix + "AllFC"           + m_suffix );    	
+     iEvent.put ( algo.gain            , m_prefix + "Gain"            + m_suffix );    	
+     iEvent.put ( algo.energy          , m_prefix + "Energy"          + m_suffix );    	
+   }   
+
+   if( m_saveRecHitInfo ){
+     iEvent.put ( algo.rec_energy      , m_prefix + "RecEnergy"       + m_suffix );    	
+     iEvent.put ( algo.rec_time        , m_prefix + "RecTime"         + m_suffix );      
+     iEvent.put ( algo.rec_rbxid       , m_prefix + "RecRBXId"        + m_suffix );      
+     iEvent.put ( algo.rec_hpdid       , m_prefix + "RecHPDId"        + m_suffix );      
+   }
  }
 };
 
