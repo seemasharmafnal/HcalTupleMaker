@@ -154,10 +154,31 @@ class HcalTupleMaker_HcalDigiAlgorithm {
 	totalFC+=tmp_FC;
       }
 
-      if( totalFC < m_totalFCthreshold ) continue;
+      
+      //-----------------------------------------------------
+      // For each digi, try to find a rechit
+      //-----------------------------------------------------
+      reco = recos.find ( * hcalDetId ) ;
+      	
+      float reco_energy = -999.;
+      float reco_time   = -999.;
+      if ( reco != reco_end ) {
+	reco_energy = reco -> energy();
+	reco_time   = reco -> time();
+      }
+
+      // this is to makesure to save HCAL rechit when total_fc<10 but rec_energy>1.5
+      int temp_subdet = hcalDetId->subdet();
+      bool pass_reco_energy = true;
+      if( (temp_subdet == (int) HcalSubdetector::HcalBarrel || temp_subdet == (int)HcalSubdetector::HcalEndcap)
+	  && reco_energy < 1.5
+	  ) pass_reco_energy = false;
+
+      bool saveThisDigi = (totalFC > m_totalFCthreshold || pass_reco_energy);
+      if( !saveThisDigi ) continue;
       //std::cout << "totalFC " << totalFC << std::endl;
-
-
+      
+      
       //-----------------------------------------------------
       // Get digi-specific values
       //-----------------------------------------------------
@@ -254,21 +275,12 @@ class HcalTupleMaker_HcalDigiAlgorithm {
 	}
       }
       
-      //-----------------------------------------------------
-      // For each digi, try to find a rechit
-      //-----------------------------------------------------
+      //-----------------------------------------------------------
+      // For each digi, save respective reconstructed energy & time
+      //-----------------------------------------------------------
       //std::cout << "recos->size() " << recos.size () << std::endl;
-      if ( m_doEnergyReco ){
 
-      	reco = recos.find ( * hcalDetId ) ;
-      	
-      	float reco_energy = -999.;
-      	float reco_time   = -999.;
-      	if ( reco != reco_end ) {
-      	  reco_energy = reco -> energy();
-      	  reco_time   = reco -> time();
-      	}
-      
+      if ( m_doEnergyReco ){
 	//std::cout << "energy " << reco_energy << std::endl;
       	rec_energy -> push_back ( reco_energy );
       	rec_time   -> push_back ( reco_time   );
