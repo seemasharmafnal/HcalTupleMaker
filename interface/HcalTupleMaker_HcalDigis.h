@@ -110,6 +110,8 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
       produces<std::vector<float> >               ( m_prefix + "Eta"             + m_suffix );
       produces<std::vector<float> >               ( m_prefix + "Phi"             + m_suffix );
       produces<std::vector<int>   >               ( m_prefix + "Depth"           + m_suffix );
+      produces<std::vector<int> >                 ( m_prefix + "RecRBXId"        + m_suffix );      
+      produces<std::vector<int> >                 ( m_prefix + "RecHPDId"        + m_suffix );      
     }
 
     if(m_saveChannelInfo) {
@@ -145,8 +147,6 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
     if( m_saveRecHitInfo ){
       produces<std::vector<float> >               ( m_prefix + "RecEnergy"       + m_suffix );    	
       produces<std::vector<float> >               ( m_prefix + "RecTime"         + m_suffix );      
-      produces<std::vector<int> >                 ( m_prefix + "RecRBXId"        + m_suffix );      
-      produces<std::vector<int> >                 ( m_prefix + "RecHPDId"        + m_suffix );      
     }
 
     algo.setTotalFCthreshold ( m_totalFCthreshold );    
@@ -201,6 +201,8 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
      iEvent.put ( algo.eta             , m_prefix + "Eta"             + m_suffix );
      iEvent.put ( algo.phi             , m_prefix + "Phi"             + m_suffix );
      iEvent.put ( algo.depth           , m_prefix + "Depth"           + m_suffix );
+     iEvent.put ( algo.rec_rbxid       , m_prefix + "RecRBXId"        + m_suffix );      
+     iEvent.put ( algo.rec_hpdid       , m_prefix + "RecHPDId"        + m_suffix );      
    }
 
    if(m_saveChannelInfo) {
@@ -237,8 +239,6 @@ class HcalTupleMaker_HcalDigis : public edm::EDProducer {
    if( m_saveRecHitInfo ){
      iEvent.put ( algo.rec_energy      , m_prefix + "RecEnergy"       + m_suffix );    	
      iEvent.put ( algo.rec_time        , m_prefix + "RecTime"         + m_suffix );      
-     iEvent.put ( algo.rec_rbxid       , m_prefix + "RecRBXId"        + m_suffix );      
-     iEvent.put ( algo.rec_hpdid       , m_prefix + "RecHPDId"        + m_suffix );      
    }
  }
 };
