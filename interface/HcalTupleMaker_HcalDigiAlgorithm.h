@@ -13,6 +13,8 @@
 #include "CalibCalorimetry/HcalTPGAlgos/interface/HcaluLUTTPGCoder.h"
 
 // HCAL objects
+#include "DataFormats/HcalDetId/interface/HcalSubdetector.h"
+#include "RecoMET/METAlgorithms/interface/HcalHPDRBXMap.h"
 #include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
 #include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
 
@@ -62,7 +64,9 @@ class HcalTupleMaker_HcalDigiAlgorithm {
 						                
   std::auto_ptr<std::vector<float> > rec_energy;    
   std::auto_ptr<std::vector<float> > rec_time;    
-  
+  std::auto_ptr<std::vector<int> >   rec_rbxid;    
+  std::auto_ptr<std::vector<int> >   rec_hpdid;    
+
   template <class DigiCollection, class RecoCollection, class DetIdClass, class DetIdClassWrapper > 
     void run ( const HcalDbService    & conditions,  
 	       const DigiCollection   & digis     , 
@@ -151,6 +155,8 @@ class HcalTupleMaker_HcalDigiAlgorithm {
       }
 
       if( totalFC < m_totalFCthreshold ) continue;
+      //std::cout << "totalFC " << totalFC << std::endl;
+
 
       //-----------------------------------------------------
       // Get digi-specific values
@@ -242,21 +248,29 @@ class HcalTupleMaker_HcalDigiAlgorithm {
       //-----------------------------------------------------
       // For each digi, try to find a rechit
       //-----------------------------------------------------
-
+      //std::cout << "recos->size() " << recos.size () << std::endl;
       if ( m_doEnergyReco ){
 
       	reco = recos.find ( * hcalDetId ) ;
       	
       	float reco_energy = -999.;
       	float reco_time   = -999.;
-      	
+	int   reco_rbxid  = -999 ;
+	int   reco_hpdid  = -999 ;
       	if ( reco != reco_end ) {
       	  reco_energy = reco -> energy();
       	  reco_time   = reco -> time();
+	  if(hcalDetId->subdet() == (int) HcalSubdetector::HcalBarrel || hcalDetId->subdet() == (int)HcalSubdetector::HcalEndcap) {
+	    reco_rbxid  = HcalHPDRBXMap::indexRBX(*hcalDetId);
+	    reco_hpdid  = HcalHPDRBXMap::indexHPD(*hcalDetId);
+	  }
       	}
       
+	//std::cout << "energy " << reco_energy << std::endl;
       	rec_energy -> push_back ( reco_energy );
       	rec_time   -> push_back ( reco_time   );
+      	rec_rbxid  -> push_back ( reco_rbxid  );
+      	rec_hpdid  -> push_back ( reco_hpdid  );
       
       }
     } // end of loop over digis
