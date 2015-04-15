@@ -191,6 +191,15 @@ class HcalTupleMaker_HcalDigiAlgorithm {
       FC              -> push_back ( std::vector<float>() ) ;    
       energy          -> push_back ( std::vector<float>() ) ;    
 
+      int   reco_rbxid  = -999 ;
+      int   reco_hpdid  = -999 ;
+      if(hcalDetId->subdet() == (int) HcalSubdetector::HcalBarrel || hcalDetId->subdet() == (int)HcalSubdetector::HcalEndcap) {
+	reco_rbxid  = HcalHPDRBXMap::indexRBX(*hcalDetId);
+	reco_hpdid  = HcalHPDRBXMap::indexHPD(*hcalDetId);
+      }
+      rec_rbxid  -> push_back ( reco_rbxid  );
+      rec_hpdid  -> push_back ( reco_hpdid  );
+
       size_t last_entry = energy -> size() - 1;
       
       //-----------------------------------------------------
@@ -255,23 +264,14 @@ class HcalTupleMaker_HcalDigiAlgorithm {
       	
       	float reco_energy = -999.;
       	float reco_time   = -999.;
-	int   reco_rbxid  = -999 ;
-	int   reco_hpdid  = -999 ;
       	if ( reco != reco_end ) {
       	  reco_energy = reco -> energy();
       	  reco_time   = reco -> time();
-	  if(hcalDetId->subdet() == (int) HcalSubdetector::HcalBarrel || hcalDetId->subdet() == (int)HcalSubdetector::HcalEndcap) {
-	    reco_rbxid  = HcalHPDRBXMap::indexRBX(*hcalDetId);
-	    reco_hpdid  = HcalHPDRBXMap::indexHPD(*hcalDetId);
-	  }
       	}
       
 	//std::cout << "energy " << reco_energy << std::endl;
       	rec_energy -> push_back ( reco_energy );
       	rec_time   -> push_back ( reco_time   );
-      	rec_rbxid  -> push_back ( reco_rbxid  );
-      	rec_hpdid  -> push_back ( reco_hpdid  );
-      
       }
     } // end of loop over digis
   }
