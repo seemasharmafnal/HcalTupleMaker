@@ -28,7 +28,7 @@ HcalTupleMaker_CaloJetMet::HcalTupleMaker_CaloJetMet(const edm::ParameterSet& iC
   produces <std::vector<double> >            (prefix + "HBET"           + suffix );
   produces <std::vector<double> >            (prefix + "HEET"           + suffix );
   produces <std::vector<double> >            (prefix + "HFET"           + suffix );
-  //produces <std::vector<double> >            (prefix + "NominalMET"     + suffix );
+  produces <std::vector<double> >            (prefix + "NominalMET"     + suffix );
   produces <std::vector<double> >            (prefix + "EBSumE"         + suffix );
   produces <std::vector<double> >            (prefix + "EESumE"         + suffix );
   produces <std::vector<double> >            (prefix + "HBSumE"         + suffix );
@@ -37,9 +37,9 @@ HcalTupleMaker_CaloJetMet::HcalTupleMaker_CaloJetMet(const edm::ParameterSet& iC
   produces <std::vector<double> >            (prefix + "EESumET"        + suffix );
   produces <std::vector<double> >            (prefix + "HBSumET"        + suffix );
   produces <std::vector<double> >            (prefix + "HESumET"        + suffix );
-  //produces <std::vector<double> >            (prefix + "JetEta"         + suffix );
-  //produces <std::vector<double> >            (prefix + "JetPt"          + suffix );
-  //produces <std::vector<double> >            (prefix + "JetPhi"         + suffix );
+  produces <std::vector<double> >            (prefix + "JetEta"         + suffix );
+  produces <std::vector<double> >            (prefix + "JetPt"          + suffix );
+  produces <std::vector<double> >            (prefix + "JetPhi"         + suffix );
   //produces <std::vector<double> >            (prefix + "JetHad"         + suffix );
   //produces <std::vector<double> >            (prefix + "JetEM"          + suffix );
 }
@@ -50,7 +50,7 @@ void HcalTupleMaker_CaloJetMet::produce(edm::Event& iEvent, const edm::EventSetu
   std::auto_ptr<std::vector<double> >            hbet         ( new std::vector<double>           ());
   std::auto_ptr<std::vector<double> >            heet         ( new std::vector<double>           ());
   std::auto_ptr<std::vector<double> >            hfet         ( new std::vector<double>           ());
-  //std::auto_ptr<std::vector<double> >            nominalmet   ( new std::vector<double>           ());
+  std::auto_ptr<std::vector<double> >            nominalmet   ( new std::vector<double>           ());
   std::auto_ptr<std::vector<double> >            ebsume       ( new std::vector<double>           ());
   std::auto_ptr<std::vector<double> >            eesume       ( new std::vector<double>           ());
   std::auto_ptr<std::vector<double> >            hbsume       ( new std::vector<double>           ());
@@ -59,9 +59,9 @@ void HcalTupleMaker_CaloJetMet::produce(edm::Event& iEvent, const edm::EventSetu
   std::auto_ptr<std::vector<double> >            eesumet      ( new std::vector<double>           ());
   std::auto_ptr<std::vector<double> >            hbsumet      ( new std::vector<double>           ());
   std::auto_ptr<std::vector<double> >            hesumet      ( new std::vector<double>           ());
-  //std::auto_ptr<std::vector<double> >            jeteta       ( new std::vector<double>           ());
-  //std::auto_ptr<std::vector<double> >            jetpt        ( new std::vector<double>           ());
-  //std::auto_ptr<std::vector<double> >            jetphi       ( new std::vector<double>           ());
+  std::auto_ptr<std::vector<double> >            jeteta       ( new std::vector<double>           ());
+  std::auto_ptr<std::vector<double> >            jetpt        ( new std::vector<double>           ());
+  std::auto_ptr<std::vector<double> >            jetphi       ( new std::vector<double>           ());
   //std::auto_ptr<std::vector<double> >            jethad       ( new std::vector<double>           ());
   //std::auto_ptr<std::vector<double> >            jetem        ( new std::vector<double>           ());
  
@@ -78,11 +78,20 @@ void HcalTupleMaker_CaloJetMet::produce(edm::Event& iEvent, const edm::EventSetu
   iSetup.get<CaloGeometryRecord>().get(hGeometry);
   Geometry = hGeometry.product();
 
-  //edm::Handle<reco::CaloJetCollection> hCaloJets;
-  //iEvent.getByLabel("ak4CaloJets", hCaloJets);
+  edm::Handle<reco::CaloJetCollection> hCaloJets;
+  iEvent.getByLabel("ak4CaloJets", hCaloJets);
 
-  //edm::Handle<reco::CaloMETCollection> hCaloMET;
-  //iEvent.getByLabel("caloMet", hCaloMET);
+  edm::Handle<reco::CaloMETCollection> hCaloMET;
+  iEvent.getByLabel("caloMet", hCaloMET);
+
+  for(reco::CaloJetCollection::const_iterator ijet=hCaloJets->begin(); 
+      ijet != hCaloJets->end(); ijet++) {
+    if(ijet->pt()>20.0) {
+      jetpt ->push_back( ijet->pt() );
+      jeteta->push_back( ijet->eta());
+      jetphi->push_back( ijet->phi());
+    }
+  }
 
   /*
   std::map<double, int, std::greater<double> > JetPTMap;
@@ -121,11 +130,11 @@ void HcalTupleMaker_CaloJetMet::produce(edm::Event& iEvent, const edm::EventSetu
   CalculateTotalEnergiesEB( *hEBRecHits );
   CalculateTotalEnergiesEE( *hEERecHits );
 
-  //if(hCaloMET->size() > 0)
-  //  {
-  //    NominalMET[0] = (*hCaloMET)[0].px();
-  //    NominalMET[1] = (*hCaloMET)[0].py();
-  //  }
+  if(hCaloMET->size() > 0)
+    {
+      NominalMET[0] = (*hCaloMET)[0].px();
+      NominalMET[1] = (*hCaloMET)[0].py();
+    }
 
 
   //Vector x and y components for these variables a la HcalNoiseAnalyzer
@@ -133,7 +142,7 @@ void HcalTupleMaker_CaloJetMet::produce(edm::Event& iEvent, const edm::EventSetu
   eeet -> push_back( EEET[0] );              eeet -> push_back( EEET[1] );
   hbet -> push_back( HBET[0] );              hbet -> push_back( HBET[1] );
   heet -> push_back( HEET[0] );              heet -> push_back( HEET[1] );
-  //nominalmet -> push_back( NominalMET[0] );  nominalmet -> push_back( NominalMET[1] );
+  nominalmet -> push_back( NominalMET[0] );  nominalmet -> push_back( NominalMET[1] );
   //
   ebsume  -> push_back( EBSumE  );
   eesume  -> push_back( EESumE  );
@@ -149,7 +158,7 @@ void HcalTupleMaker_CaloJetMet::produce(edm::Event& iEvent, const edm::EventSetu
   iEvent.put(hbet       , prefix + "HBET"            + suffix );
   iEvent.put(heet       , prefix + "HEET"            + suffix );
   iEvent.put(hfet       , prefix + "HFET"            + suffix );
-  //iEvent.put(nominalmet , prefix + "NominalMET"      + suffix );  
+  iEvent.put(nominalmet , prefix + "NominalMET"      + suffix );  
   iEvent.put(ebsume     , prefix + "EBSumE"          + suffix );  
   iEvent.put(eesume     , prefix + "EESumE"          + suffix );  
   iEvent.put(hbsume     , prefix + "HBSumE"          + suffix );  
@@ -158,9 +167,9 @@ void HcalTupleMaker_CaloJetMet::produce(edm::Event& iEvent, const edm::EventSetu
   iEvent.put(eesumet    , prefix + "EESumET"         + suffix );  
   iEvent.put(hbsumet    , prefix + "HBSumET"         + suffix );  
   iEvent.put(hesumet    , prefix + "HESumET"         + suffix );  
-  //iEvent.put(jeteta     , prefix + "JetEta"         + suffix );  
-  //iEvent.put(jetpt      , prefix + "JetPt"          + suffix );  
-  //iEvent.put(jetphi     , prefix + "JetPhi"         + suffix );  
+  iEvent.put(jeteta     , prefix + "JetEta"         + suffix );  
+  iEvent.put(jetpt      , prefix + "JetPt"          + suffix );  
+  iEvent.put(jetphi     , prefix + "JetPhi"         + suffix );  
   //iEvent.put(jethad     , prefix + "JetHad"         + suffix );  
   //iEvent.put(jetem      , prefix + "JetEM"          + suffix );  
 }
