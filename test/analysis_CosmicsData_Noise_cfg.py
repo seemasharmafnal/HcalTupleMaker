@@ -159,8 +159,8 @@ process.tuple_step = cms.Sequence(
     # Make HCAL tuples: Event, run, ls number
     process.hcalTupleEvent*
     #  Make HCAL tuples: digi info
-#    process.hcalTupleHBHEDigisMethod2*
-#    process.hcalTupleHBHEDigisMethod0*
+    process.hcalTupleHBHEDigisMethod2*
+    process.hcalTupleHBHEDigisMethod0*
     process.hcalTupleHODigis*
     process.hcalTupleHFDigis*
     #    process.hcalTupleTriggerPrimitives*
