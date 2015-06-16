@@ -174,7 +174,8 @@ class HcalTupleMaker_HcalDigiAlgorithm {
 	  && reco_energy < 1.5
 	  ) pass_reco_energy = false;
 
-      bool saveThisDigi = (totalFC > m_totalFCthreshold || pass_reco_energy);
+      //bool saveThisDigi = (totalFC > m_totalFCthreshold || pass_reco_energy);
+      bool saveThisDigi = (totalFC > m_totalFCthreshold);
       if( !saveThisDigi ) continue;
       //std::cout << "totalFC " << totalFC << std::endl;
       
